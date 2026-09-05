@@ -1,0 +1,384 @@
+<?xml version="1.0" encoding="utf-8"?>
+<unit>
+
+	<!-- index 0 — WAJIB pertama. <data> di sini BUKAN stat Idle, tapi unitName/maxHP/width/height/speed
+	     (CHARACTER_SYSTEM.md §2). Ganti angka sesuai balance yang diinginkan.
+	     RESPRITE #2 (ukuran dikoreksi): sprite sheet Kabuto_frames__6_/1000231005.png (91px tinggi
+	     Idle, ~1.2x lebih besar dari rata-rata roster) DIGANTI TOTAL dengan
+	     Kabuto_frames__7_.json + Kabuto_frames__8_.json (sama-sama merujuk texture 1000234057.png,
+	     digabung — __7_ = Idle..Skill02, __8_ = Skill03..Skill05, dengan Skill03_01/02/03 tumpang
+	     tindih di kedua file; entri __8_ dipakai sbg sumber final utk 3 frame itu karena metadata
+	     foot-reference-nya lebih lengkap). Idle sekarang 38x75px, PAS dengan median tinggi Idle
+	     roster lain (~75px) — makanya setScale() koreksi visual di Kabuto.hpp SUDAH DIHAPUS, tidak
+	     dibutuhkan lagi. Nama frame case-sensitive, lookup via SpriteFrameCache::spriteFrameByName
+	     (Utils/Cocos2dxHelper.hpp getSpriteFrame()); penanda "faseN" dari tools TETAP cuma penanda
+	     lokasi command di komentar (bukan bagian nama action) — tapi kali ini penanda itu literal
+	     ADA di nama frame hasil tools ("Kabuto_Skill03_fase2_NN", "Kabuto_Skill05_fase1..4_NN",
+	     dengan underscore sebelum "fase", beda dari RESPRITE #1 yang tanpa underscore) sehingga
+	     ditulis apa adanya di <f> di bawah, tetap sbg SATU <action> sekuensial per skill.
+	     PERINGATAN JUMLAH FRAME (mengecil, bukan cuma resize): dibanding RESPRITE #1, sheet baru
+	     ini punya frame LEBIH SEDIKIT di 2 tempat — Skill02 (5→4) dan Skill05 fase2 (9→6) + fase3
+	     (9→8). Choreography event (setAttackBox/setCommand/setMove) di 3 action itu SUDAH
+	     dipadatkan manual mengikuti frame yang tersisa (jumlah proc hit dipertahankan sama,
+	     cuma jaraknya lebih rapat) — lihat catatan di action masing-masing, sebaiknya di-review
+	     ulang timing-nya secara visual karena ini penyesuaian otomatis, bukan re-desain manual. -->
+	     Kabuto_frames__9_.json (grup animasi "Feathers", 3 frame Kabuto_Feathers_01..03, texture
+	     sama 1000234057.png) SUDAH ikut digabung ke Kabuto.plist ini juga — dipakai oleh
+	     Resources/Unit/Projectile/KabutoFeather.xml (nama frame di sana sudah cocok persis,
+	     tidak perlu diubah).
+	<action name="Idle">
+		<data>
+			<p type="attackType">Kabuto</p>
+			<p type="attackValue">5500</p>
+			<p type="attackRangeX">49</p>
+			<p type="attackRangeY">59</p>
+			<p type="cd">224</p>
+		</data>
+		<frame>
+			<f>Kabuto_Idle_01</f>
+			<f>Kabuto_Idle_02</f>
+			<f>Kabuto_Idle_03</f>
+			<f>Kabuto_Idle_04</f>
+		</frame>
+	</action>
+
+	<!-- index 1 — RESPRITE: 6 -> 4 frame. -->
+	<action name="Walk">
+		<frame>
+			<f>Kabuto_Walk_01</f>
+			<f>Kabuto_Walk_02</f>
+			<f>Kabuto_Walk_03</f>
+			<f>Kabuto_Walk_04</f>
+		</frame>
+	</action>
+
+	<!-- index 2 — RESPRITE: 4 -> 2 frame, setMove/setSound dipertahankan di posisi relatif sama. -->
+	<action name="Hurt">
+		<frame>
+			<e type="setMove">32</e>
+			<f>Kabuto_Hurt_01</f>
+			<f>Kabuto_Hurt_02</f>
+			<e type="setSound">Audio/Kabuto/kabuto_hurt.ogg</e>
+		</frame>
+	</action>
+
+	<!-- index 3 — RESPRITE: 3 -> 2 frame. -->
+	<action name="AirHurt">
+		<frame>
+			<f>Kabuto_AirHurt_01</f>
+			<f>Kabuto_AirHurt_02</f>
+		</frame>
+	</action>
+
+	<!-- index 4 — PERHATIAN CASING: asset asli "Knockdown" (d kecil), BUKAN "KnockDown".
+	     RESPRITE: 8 -> 3 frame, setDelay+setSound dirampingkan mengikuti frame yang tersisa. -->
+	<action name="KnockDown">
+		<frame>
+			<f>Kabuto_Knockdown_01</f>
+			<f>Kabuto_Knockdown_02</f>
+			<e type="setDelay">10</e>
+			<e type="setSound">Audio/Kabuto/kabuto_death.ogg</e>
+			<f>Kabuto_Knockdown_03</f>
+		</frame>
+	</action>
+
+	<!-- index 5 — RESPRITE: 3 -> 2 frame. -->
+	<action name="Float">
+		<frame>
+			<f>Kabuto_Float_01</f>
+			<f>Kabuto_Float_02</f>
+		</frame>
+	</action>
+
+	<!-- index 6 — PERHATIAN NAMA: asset asli "Kabuto_Death_01", BUKAN "Kabuto_Dead_*".
+	     RESPRITE: 2 -> 1 frame. -->
+	<action name="Dead">
+		<frame>
+			<f>Kabuto_Death_01</f>
+		</frame>
+	</action>
+
+	<!-- index 7 — nAttack. RESPRITE + PLIST SYNC: sprite sheet baru punya 8 frame nyata
+	     "Kabuto_NAttack_*" (n kecil). Metadata tools sempat menomori 01-06,08,09 (skip 07) —
+	     dikonfirmasi 07 & 08 lama SAMA PERSIS koordinat atlasnya (crop identik, cuma offset
+	     anchor beda dikit), jadi cuma duplikat export, BUKAN 2 pose beda. Sudah di-collapse +
+	     dirunut ulang berurutan 01-08 (tanpa skip) di Kabuto.plist supaya lookup
+	     SpriteFrameCache::spriteFrameByName konsisten dgn frame yang benar-benar ada; daftar di
+	     bawah disesuaikan mengikuti penomoran baru itu (bekas "08,09" sekarang "07,08").
+	     "Kabuto_NAttack_01/02" (N besar) di metadata lama TERNYATA alias duplikat pose
+	     Skill01_01/02 (koordinat atlas-nya identik), BUKAN bagian animasi nAttack — sudah
+	     dihapus dari Kabuto.plist (bukan cuma "tidak dipakai") supaya tidak ada frame nganggur
+	     yang bisa salah tampil pose Skill01 saat basic attack biasa. -->
+	<action name="nAttack">
+		<data>
+			<p type="attackType">n_hit</p>
+			<p type="attackValue">450</p>
+			<p type="attackRangeX">13</p>
+			<p type="attackRangeY">40</p>
+			<p type="cd">0</p>
+		</data>
+		<frame>
+			<f>Kabuto_NAttack_01</f>
+			<f>Kabuto_NAttack_02</f>
+			<f>Kabuto_NAttack_03</f>
+			<e type="setAttackBox">n_hit</e>
+			<f>Kabuto_NAttack_04</f>
+			<e type="setMove">8</e>
+			<f>Kabuto_NAttack_05</f>
+			<f>Kabuto_NAttack_06</f>
+			<e type="setAttackBox">n_hit</e>
+			<f>Kabuto_NAttack_07</f>
+			<e type="setAttackBox">n_hit</e>
+			<f>Kabuto_NAttack_08</f>
+		</frame>
+	</action>
+
+	<!-- index 8 = SKILL1 — Chakra Scalpel Activation. RESPRITE: 5 -> 3 frame asset asli.
+	     attackType "cBuff" + <e type="setBuff">N</e> = trigger changeAction() (CharacterBase.cpp
+	     §2.cBuff-branch, pola sama seperti Tsunade). N = nilai bebas, dipakai sbg _skillChangeBuffValue
+	     kalau nanti butuh sub-varian; untuk Kabuto tidak dibaca lagi setelahnya (lihat Kabuto.hpp,
+	     window dikontrol scheduleOnce(resumeAction, 6.0f) di dalam changeAction() sendiri, BUKAN
+	     lewat buffStayTime XML), jadi nilai N di sini murni kosmetik/placeholder.
+	     LAYOUT BARU (diminta): mekanisme setBuff TETAP dipakai, tapi event-nya dipindah ke PALING
+	     AKHIR (setelah semua frame animasi selesai main), bukan di tengah seperti sebelumnya —
+	     changeAction()/_kbScalpelDmgBuffActive baru aktif begitu animasi kelar, bukan di tengah pose. -->
+	<action name="skill01">
+		<data>
+			<p type="attackType">cBuff</p>
+			<p type="attackValue">0</p>
+			<p type="attackRangeX">0</p>
+			<p type="attackRangeY">0</p>
+			<p type="cd">14</p>
+			<p type="combatPoint">720</p>
+		</data>
+		<frame>
+			<e type="setSound">Audio/Kabuto/kabuto_skill1.ogg</e>
+			<f>Kabuto_Skill01_01</f>
+			<f>Kabuto_Skill01_02</f>
+			<f>Kabuto_Skill01_03</f>
+			<e type="setBuff">1</e>
+		</frame>
+	</action>
+
+	<!-- index 9 = SKILL2 — Nerve Strike Dash. RESPRITE: tetap 5 frame asset asli.
+	     attackType dasar tetap "ns_hit" di <data> (custom slow -30% MS 1.5s dibaca dari
+	     attacker->_attackType di CharacterBase::setDamage, TIDAK berubah oleh setAttackBox di
+	     bawah — setAttackBox cuma set _effectType/hit-reaction & kolisi per-frame, lihat
+	     CharacterBase::setAttackBox()/setDamage(CharacterBase*) overload). LAYOUT BARU (diminta):
+	     setCharge dipindah ke antara frame 2-3 (sebelumnya antara 1-2), attack box proc di situ
+	     diganti dari 3x "ns_hit" jadi cuma 2 proc "c_hit" (antara frame 2-3) lalu "b_hit" (setelah
+	     frame 4).
+	     RESPRITE #2: sheet baru cuma 4 frame nyata (Skill02_01..04), bukan 5 seperti RESPRITE #1 —
+	     proc "b_hit" yang dulu ada SETELAH frame ke-5 (frame terpisah, murni closing pose) sekarang
+	     dipindah ke SEBELUM frame ke-4 (frame terakhir yang ada), supaya tetap ada damage window di
+	     akhir animasi walau tanpa frame closing terpisah lagi. -->
+	<action name="skill02">
+		<data>
+			<p type="attackType">ns_hit</p>
+			<p type="attackValue">380</p>
+			<p type="attackRangeX">26</p>
+			<p type="attackRangeY">40</p>
+			<p type="cd">12</p>
+			<p type="combatPoint">760</p>
+		</data>
+		<frame>
+			<f>Kabuto_Skill02_01</f>
+			<f>Kabuto_Skill02_02</f>
+			<e type="setCharge">128</e>
+			<e type="setSound">Audio/Kabuto/kabuto_skill2.ogg</e>
+			<e type="setAttackBox">c_hit</e>
+			<e type="setSkillEffect">tishen</e>
+			<f>Kabuto_Skill02_03</f>
+			<e type="setAttackBox">b_hit</e>
+			<f>Kabuto_Skill02_04</f>
+		</frame>
+	</action>
+
+	<!-- index 10 = SKILL3 — Dead Soul Vault. REDESIGN TOTAL (diminta): dari "lompat+slam"
+	     (setJump/stopJump) jadi "teleport-strike" — setJump DIHAPUS SELURUHNYA. Frame 01-05
+	     (asset asli, tanpa nama fase) murni animasi wind-up, baru SETELAH frame terakhirnya proc
+	     "c_hit" lalu setCommand findTarget (re-lock posisi _mainTarget ke _markPoint) disusul
+	     setTransport (teleport Kabuto ke _markPoint itu — Command System generik, lihat
+	     Systems/CommandSystem.hpp) — dari sini Kabuto muncul di sisi/tempat target. Lanjut ke
+	     frame yang dulu bernama "Skill03(fase2)" (6 frame, penanda fase dihilangkan, tetap
+	     <action> yang sama): frame 1 & 2 masing-masing proc "b_hit", frame 3 proc "c_hit", frame 4
+	     proc "f_hit", lalu frame 5-6 murni animasi penutup tanpa event lagi. -->
+	<action name="skill03">
+		<data>
+			<p type="attackType">m_hit</p>
+			<p type="attackValue">620</p>
+			<p type="attackRangeX">53</p>
+			<p type="attackRangeY">53</p>
+			<p type="cd">16</p>
+			<p type="combatPoint">980</p>
+		</data>
+		<frame>
+			<e type="setSound">Audio/Kabuto/kabuto_skill3.ogg</e>
+			<f>Kabuto_Skill03_01</f>
+			<f>Kabuto_Skill03_02</f>
+			<f>Kabuto_Skill03_03</f>
+			<f>Kabuto_Skill03_04</f>
+			<f>Kabuto_Skill03_05</f>
+			<e type="setAttackBox">c_hit</e>
+			<e type="setCommand">findTarget</e>
+			<e type="setCommand">setTransport</e>
+			<f>Kabuto_Skill03_fase2_01</f>
+			<e type="setAttackBox">b_hit</e>
+			<f>Kabuto_Skill03_fase2_02</f>
+			<e type="setAttackBox">b_hit</e>
+			<f>Kabuto_Skill03_fase2_03</f>
+			<e type="setAttackBox">c_hit</e>
+			<f>Kabuto_Skill03_fase2_04</f>
+			<e type="setAttackBox">f_hit</e>
+			<f>Kabuto_Skill03_fase2_05</f>
+			<f>Kabuto_Skill03_fase2_06</f>
+		</frame>
+	</action>
+
+	<!-- index 11 = OUGIS1 (bukan tombol SKILL4 — engine cuma punya SKILL1-3 + OUGIS1-2, lihat
+	     SKILL_SYSTEM.md §1) — Dead Soul Jutsu (Possession). RESPRITE: 9 -> 7 frame asset asli.
+	     skill04 TETAP murni animasi/sfx (tidak ada <e type="setClone"> lagi sama sekali, lihat
+	     komentar rebalance lama di bawah & Kabuto.hpp). CATATAN PENTING soal "command
+	     pengendalian" yang diminta diletakkan setelah frame 5: revive+kontrol mayat (
+	     reviveCorpseAsPuppet(), dipanggil dari trySpawnDeadSoulPuppet() lewat attack(OUGIS1)
+	     override) SUDAH DIEKSEKUSI DI C++ SEBELUM action ini mulai main sama sekali (lihat
+	     Kabuto::perform()) — Systems/CommandSystem.hpp TIDAK punya entry untuk "pengendalian
+	     puppet", jadi tidak ada <e type="setCommand"> yang bisa dipasang di sini utk memindah
+	     titik eksekusinya (itu perlu command baru di C++, di luar cakupan "cukup edit
+	     Kabuto.xml"). Baris di bawah ini HANYA penanda lokasi kalau suatu saat hook itu mau
+	     dipindah ke tengah animasi. -->
+	<!-- REBALANCE: skill04 sekarang MURNI animasi/sfx — tidak ada lagi <e type="setClone">
+	     di sini sama sekali. Dead Soul Army sekarang cuma 1 clone per cast, HANYA muncul kalau
+	     ada mayat unit ber-tipe Hero di radius, dan di-spawn manual dari
+	     Kabuto::trySpawnDeadSoulArmyClone() SEBELUM attack(OUGIS1) ini jalan (lihat perform() di
+	     Kabuto.hpp) — kalau tidak ada mayat yang cocok, attack(OUGIS1) tidak akan pernah dipanggil
+	     sama sekali, jadi animasi ini juga tidak akan pernah main tanpa clone yang benar-benar
+	     ke-spawn. -->
+	<action name="skill04">
+		<data>
+			<p type="attackType">setup</p>
+			<p type="attackValue">0</p>
+			<p type="attackRangeX">0</p>
+			<p type="attackRangeY">0</p>
+			<p type="cd">0</p>
+			<p type="combatPoint">1600</p>
+		</data>
+		<frame>
+			<e type="setSound">Audio/Kabuto/kabuto_skill04.ogg</e>
+			<f>Kabuto_Skill04_01</f>
+			<f>Kabuto_Skill04_02</f>
+			<f>Kabuto_Skill04_03</f>
+			<f>Kabuto_Skill04_04</f>
+			<f>Kabuto_Skill04_05</f>
+			<!-- << titik "command pengendalian" diminta di sini — lihat catatan di atas, tidak ada
+			     command XML yang valid utk ini saat ini, jadi cuma efek SMK (kosmetik) yang jalan. -->
+			<e type="setSkillEffect">smk</e>
+			<f>Kabuto_Skill04_06</f>
+			<f>Kabuto_Skill04_07</f>
+		</frame>
+	</action>
+
+	<!-- index 12 = OUGIS2 — Nehan Shojo: Final Slash. RESPRITE TOTAL: dari 10 frame kontinu jadi
+	     23 frame lintas 4 "fase" bekas tools (fase1=3, fase2=9, fase3=9, fase4=2 — nama fase
+	     dihilangkan, tetap 1 <action> sekuensial, penomoran animations-list yang bolong di
+	     fase2/fase3 sudah dihitung ulang berurutan dari "frames" dict yang sesungguhnya).
+	     attackType "kb_ult_hit" custom (dibaca di CharacterBase::setDamage patch §2c utk true
+	     damage & §2d utk stun 4 detik pada _mainTarget). Butuh CKR2>=25000.
+	     LAYOUT BARU (diminta):
+	       - fase1 (3 frame): setOugis/setSound/setInvincible di frame1->2 spt sebelumnya, stun
+	         effect di frame2->3 spt sebelumnya. Setelah frame3, "panggil feathers" — CATATAN:
+	         spawnNehanShoujoFeathers() SUDAH dipanggil pre-cast dari perform() (lihat Kabuto.hpp),
+	         XML tidak bisa merelokasi call C++ itu tanpa command baru; baris di bawah cuma penanda
+	         posisi kalau nanti mau dipindah ke command mid-animasi.
+	       - fase2 (9 frame): antara frame2-3 setMove+proc "o_hit", antara frame3-4 setChargeB+proc
+	         "c_hit", setelah frame5 setMove+proc "o_hit" lagi, sisa frame6-9 murni animasi.
+	       - fase3 (9 frame): frame1 murni animasi, antara frame2-3 setMove+proc "c_hit"+
+	         setCommand findTarget+setTransport (re-lock lalu teleport ke target), lanjut blitz
+	         teleport 4x beruntun (antara 4-5, 5-6, 6-7, 7-8 masing-masing findTarget+setTransport).
+	         LAYOUT BARU (diminta): setiap frame yang langsung mengikuti sepasang
+	         setCommand findTarget+setTransport SEKARANG proc "c_hit" tepat setelahnya (urutan
+	         setCommand > frame > c_hit) — jadi tiap teleport-strike ikut kena damage, bukan cuma
+	         teleport kosmetik. Blok pertama (antara frame2-3) TIDAK ditambah lagi karena sudah
+	         punya "c_hit" sendiri sebelum setCommand-nya; frame9 (penutup, tidak didahului
+	         setCommand-nya sendiri) tetap murni animasi tanpa event.
+	       - fase4 (2 frame, finisher): setMove lalu kedua frame (awal+akhir) main, DISUSUL SATU
+	         proc "kb_ult_hit" masif di akhir (dulu 4x proc @850 across old frame 05/07/08/09 =
+	         total ~3400; sekarang cuma 1x proc @850 attackValue di <data> — kalau mau total
+	         burst yang sama seperti sebelum resprite, attackValue di <data> perlu dinaikkan
+	         manual ke ~3400, TIDAK diubah di sini karena scope diminta cuma restrukturisasi
+	         frame/event, bukan angka damage).
+
+	       RESPRITE #2 (frame makin sedikit dari RESPRITE #1, di luar sekadar resize kanvas):
+	         - fase2: 9 frame -> 6 frame. Dipadatkan jadi: frame1-2 murni, [setMove+o_hit] sebelum
+	           frame3, [setChargeB+c_hit] sebelum frame4, [setMove+o_hit] sebelum frame5, frame5-6
+	           penutup murni. Tetap 2x proc "o_hit" + 1x proc "c_hit" seperti RESPRITE #1, jaraknya
+	           saja yang dirapatkan (dulu proc o_hit kedua ada setelah frame5, sekarang setelah
+	           frame4).
+	         - fase3: 9 frame -> 8 frame, artinya SATU siklus "teleport+c_hit" di tengah dihapus
+	           (dari RESPRITE #1 yang punya 4 siklus teleport+strike + 1 teleport murni + 1 c_hit
+	           penutup, sekarang jadi 3 siklus teleport+strike + 1 teleport murni + 1 c_hit
+	           penutup). Total proc "c_hit" turun dari 5 ke 4, total teleport (setCommand
+	           findTarget+setTransport) turun dari 5 ke 4 — pola "buka dgn 2 frame murni, tutup
+	           dgn 1 frame murni" persis dipertahankan seperti RESPRITE #1, cuma satu blitz di
+	           tengah yang dikorbankan. Rekomendasi: cek ulang secara visual, ini kompresi
+	           otomatis bukan re-koreografi manual. -->
+	<action name="skill05">
+		<data>
+			<p type="attackType">kb_ult_hit</p>
+			<p type="attackValue">850</p>
+			<p type="attackRangeX">66</p>
+			<p type="attackRangeY">66</p>
+			<p type="cd">0</p>
+			<p type="combatPoint">3200</p>
+		</data>
+		<frame>
+			<f>Kabuto_Skill05_fase1_01</f>
+			<e type="setOugis">10</e>
+			<e type="setSound">Audio/Kabuto/kabuto_skill05.ogg</e>
+			<e type="setCommand">setInvincible</e>
+			<f>Kabuto_Skill05_fase1_02</f>
+			<e type="setSkillEffect">stun</e>
+			<f>Kabuto_Skill05_fase1_03</f>
+			<!-- << titik "panggil feathers" diminta di sini — lihat catatan di atas. -->
+			<f>Kabuto_Skill05_fase2_01</f>
+			<f>Kabuto_Skill05_fase2_02</f>
+			<e type="setMove">16</e>
+			<e type="setAttackBox">o_hit</e>
+			<f>Kabuto_Skill05_fase2_03</f>
+			<e type="setChargeB">64</e>
+			<e type="setAttackBox">c_hit</e>
+			<f>Kabuto_Skill05_fase2_04</f>
+			<e type="setMove">16</e>
+			<e type="setAttackBox">o_hit</e>
+			<f>Kabuto_Skill05_fase2_05</f>
+			<f>Kabuto_Skill05_fase2_06</f>
+			<f>Kabuto_Skill05_fase3_01</f>
+			<f>Kabuto_Skill05_fase3_02</f>
+			<e type="setMove">16</e>
+			<e type="setAttackBox">c_hit</e>
+			<e type="setCommand">findTarget</e>
+			<e type="setCommand">setTransport</e>
+			<f>Kabuto_Skill05_fase3_03</f>
+			<f>Kabuto_Skill05_fase3_04</f>
+			<e type="setCommand">findTarget</e>
+			<e type="setCommand">setTransport</e>
+			<f>Kabuto_Skill05_fase3_05</f>
+			<e type="setAttackBox">c_hit</e>
+			<e type="setCommand">findTarget</e>
+			<e type="setCommand">setTransport</e>
+			<f>Kabuto_Skill05_fase3_06</f>
+			<e type="setAttackBox">c_hit</e>
+			<e type="setCommand">findTarget</e>
+			<e type="setCommand">setTransport</e>
+			<f>Kabuto_Skill05_fase3_07</f>
+			<e type="setAttackBox">c_hit</e>
+			<f>Kabuto_Skill05_fase3_08</f>
+			<e type="setMove">32</e>
+			<f>Kabuto_Skill05_fase4_01</f>
+			<f>Kabuto_Skill05_fase4_02</f>
+			<e type="setAttackBox">kb_ult_hit</e>
+			<e type="setCommand">reInvincible</e>
+		</frame>
+	</action>
+
+</unit>
